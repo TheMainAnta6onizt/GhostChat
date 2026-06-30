@@ -37,6 +37,21 @@ https://themainanta6onizt.github.io/GhostChat/
 - Transparent overlay mode
 - Multiple game categories
 
+## Quick Start
+
+1. Visit the live demo:
+   https://themainanta6onizt.github.io/GhostChat/
+
+2. Select a game franchise and sub-game.
+
+3. Choose your viewer count and message frequency.
+
+4. Press **Start Chat**.
+
+5. Enable **OBS Mode** if you want to use GhostChat as a Browser Source overlay.
+
+6. Add the OBS URL to a Browser Source and start practicing.
+
 ## 🎮 Supported Games
 
 - Call of Duty: Warzone
