@@ -8,6 +8,20 @@ Whether you're streaming to 0 viewers or preparing for your next big stream, Gho
 
 https://themainanta6onizt.github.io/GhostChat/
 
+## Screenshots
+
+### Control Panel
+
+![GhostChat Control Panel](ghostchat-control-panel-website.png)
+
+### OBS Integration
+
+![GhostChat OBS Integration](ghostchat-obs-integration.png)
+
+### Overlay Demo
+
+![GhostChat Overlay Demo](ghostchat-overlay-demo.png)
+
 ## ✨ Features
 
 - Simulated live viewers
