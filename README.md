@@ -1,5 +1,7 @@
 # 👻 GhostChat
 
+### Because streaming should be fun, with 100 viewers or one.
+
 GhostChat is a browser-based Twitch-style chat simulator designed for streamers, podcasters, and content creators who want to practice interacting with a live audience.
 
 Whether you're streaming to 0 viewers or preparing for your next big stream, GhostChat helps keep the conversation flowing by simulating realistic chat messages, questions, reactions, and community engagement.
