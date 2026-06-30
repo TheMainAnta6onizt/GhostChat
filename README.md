@@ -52,6 +52,16 @@ https://themainanta6onizt.github.io/GhostChat/
 
 6. Add the OBS URL to a Browser Source and start practicing.
 
+## OBS Browser Source Setup
+
+1. Open GhostChat.
+2. Configure your settings.
+3. Enable OBS Mode.
+4. Copy the generated OBS URL.
+5. Add a Browser Source in OBS Studio.
+6. Paste the URL.
+7. Resize and position the chat overlay.
+
 ## 🎮 Supported Games
 
 - Call of Duty: Warzone
