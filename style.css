@@ -47,6 +47,38 @@ body {
   line-height: 1.5;
 }
 
+/* Lock the page to the viewport so the chat scrolls internally (Twitch-like) */
+body:not(.obs-mode) {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body:not(.obs-mode) .app {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Let flex children shrink so nested scroll areas work, and pin the grid
+   row to the viewport so the controls column can't stretch the page */
+body:not(.obs-mode) .main {
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+body:not(.obs-mode) .chat-panel {
+  min-height: 0;
+}
+
+/* Controls scroll on their own so accordions are never cut off */
+body:not(.obs-mode) .controls-panel {
+  align-self: stretch;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* --- App Layout --- */
 .app {
   display: flex;
@@ -94,6 +126,7 @@ body {
 
 /* --- Chat Panel --- */
 .chat-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
@@ -195,6 +228,57 @@ body {
   display: none;
 }
 
+.sub-game-group__empty {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Game selection button groups (OBS-friendly) */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.button-group__btn {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0.55rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.button-group__btn:hover:not(.button-group__btn--active) {
+  background: var(--bg-hover);
+  border-color: var(--accent-purple);
+}
+
+.button-group__btn:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 2px;
+}
+
+.button-group__btn--active {
+  background: rgba(145, 71, 255, 0.22);
+  border-color: var(--accent-purple);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(145, 71, 255, 0.4);
+}
+
 .control-label--spaced {
   margin-top: 0.25rem;
 }
@@ -223,7 +307,10 @@ body {
 /* Scrollable chat window */
 .chat-window {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 0.75rem 0;
   scroll-behavior: smooth;
 }
@@ -244,6 +331,42 @@ body {
 
 .chat-window::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* "New messages" indicator — shown when new chat arrives while scrolled up */
+.new-messages-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 0.85rem;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent-purple);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.new-messages-btn:hover {
+  background: var(--accent-purple-hover);
+}
+
+.new-messages-btn[hidden] {
+  display: none;
+}
+
+.new-messages-btn__arrow {
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 /* Empty state */
@@ -297,6 +420,11 @@ body.hide-personality-labels .chat-message__personality {
 
 .chat-message__text {
   color: var(--text-primary);
+}
+
+.chat-message__mention {
+  color: var(--accent-purple);
+  font-weight: 600;
 }
 
 /* --- Controls Panel --- */
@@ -739,6 +867,8 @@ body.hide-personality-labels .chat-message__personality {
    ========================================================================== */
 body.obs-mode {
   background: transparent;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body.obs-mode .header,
@@ -750,19 +880,31 @@ body.obs-mode .footer {
 body.obs-mode .app {
   max-width: none;
   padding: 0;
-  min-height: auto;
+  min-height: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 body.obs-mode .main {
   display: block;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 body.obs-mode .chat-panel {
   border: none;
   border-radius: 0;
   box-shadow: none;
-  min-height: 100vh;
+  min-height: 0;
+  height: 100%;
   background: transparent;
+}
+
+body.obs-mode .chat-window {
+  flex: 1;
+  min-height: 0;
 }
 
 body.obs-mode .chat-panel__header {
@@ -791,10 +933,6 @@ body.obs-mode .chat-panel__game-mode {
 }
 
 body.obs-mode .chat-window {
-  background: transparent;
-}
-
-body.obs-mode {
   background: transparent;
 }
 
@@ -832,16 +970,39 @@ body.obs-mode .obs-exit-btn {
   display: block;
 }
 
-body.obs-mode .obs-exit-btn {
-  display: block;
-}
-
 /* ==========================================================================
    Responsive
    ========================================================================== */
 @media (max-width: 768px) {
   .main {
     grid-template-columns: 1fr;
+  }
+
+  /* On mobile, let the page scroll naturally and cap the chat window height */
+  body:not(.obs-mode) .main {
+    grid-template-rows: none;
+  }
+
+  body:not(.obs-mode) {
+    height: auto;
+    overflow: auto;
+  }
+
+  body:not(.obs-mode) .app {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  body:not(.obs-mode) .controls-panel {
+    max-height: none;
+    overflow: visible;
+  }
+
+  body:not(.obs-mode) .chat-window {
+    height: 60vh;
+    max-height: 60vh;
+    flex: none;
   }
 
   .controls-panel {

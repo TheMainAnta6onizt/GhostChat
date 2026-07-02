@@ -44,6 +44,10 @@
         <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-relevant="additions">
           <!-- Messages are injected here by script.js -->
         </div>
+        <button type="button" class="new-messages-btn" id="newMessagesBtn" hidden>
+          New messages
+          <span class="new-messages-btn__arrow" aria-hidden="true">↓</span>
+        </button>
       </section>
 
       <!-- Controls panel -->
@@ -173,21 +177,17 @@
             <div class="accordion__body" id="accordionBodyGameMode">
               <div class="accordion__body-inner">
                 <div class="control-group control-group--flush">
-                  <label class="control-label" for="franchiseSelect">Game Franchise</label>
-                  <select id="franchiseSelect" class="select">
-                    <option value="callOfDuty">Call of Duty</option>
-                    <option value="battlefield">Battlefield</option>
-                    <option value="rainbowSix">Rainbow Six</option>
-                    <option value="extractionShooters">Extraction Shooters</option>
-                    <option value="rpgMmorp">RPG / MMORPG</option>
-                    <option value="generalGaming">General Gaming</option>
-                  </select>
+                  <span class="control-label">Game Franchise</span>
+                  <div class="button-group" id="franchiseButtonGroup" role="group" aria-label="Game Franchise">
+                    <!-- Franchise buttons injected by script.js -->
+                  </div>
 
                   <div class="sub-game-group" id="subGameGroup">
-                    <label class="control-label control-label--spaced" for="subGameSelect">Sub-Game</label>
-                    <select id="subGameSelect" class="select">
-                      <!-- Options populated by script.js -->
-                    </select>
+                    <span class="control-label control-label--spaced">Sub-Game</span>
+                    <div class="button-group" id="subGameButtonGroup" role="group" aria-label="Sub-Game">
+                      <!-- Sub-game buttons injected by script.js -->
+                    </div>
+                    <p class="sub-game-group__empty" id="subGameEmptyHint" hidden>No sub-game needed.</p>
                   </div>
 
                   <p class="control-hint">Messages prioritize the selected sub-game, with occasional general gaming questions mixed in.</p>
@@ -334,6 +334,11 @@
                   <div class="category-list" id="categoryList">
                     <!-- Category checkboxes injected by script.js -->
                   </div>
+                  <label class="toggle-row toggle-row--compact">
+                    <input type="checkbox" id="chatterInteractions" class="toggle-row__input" checked>
+                    <span class="toggle-row__label">Enable chatter interactions</span>
+                    <span class="toggle-row__hint">Viewers occasionally reply to each other with @username.</span>
+                  </label>
                 </div>
               </div>
             </div>

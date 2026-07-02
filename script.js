@@ -488,6 +488,130 @@ const PROFILE_STORAGE_KEY = 'ghostchat_streamer_profile';
 /** localStorage key for viewer count simulator settings */
 const VIEWER_SETTINGS_STORAGE_KEY = 'ghostchat_viewer_settings';
 
+/** localStorage key for the chatter interaction toggle */
+const CHATTER_INTERACTION_STORAGE_KEY = 'ghostchat_chatter_interactions';
+
+/** Share of messages that become chatter-to-chatter replies (rolled per message) */
+const CHATTER_REPLY_RATE_MIN = 0.15;
+const CHATTER_REPLY_RATE_MAX = 0.25;
+
+/** How many recent chatters we can reply to, and how many targets to cool down */
+const MAX_RECENT_CHATTERS = 14;
+const MAX_RECENT_REPLY_TARGETS = 5;
+
+/** Max chat messages kept in the DOM (older ones are pruned, Twitch-style) */
+const MAX_CHAT_MESSAGES = 250;
+
+/** Distance (px) from the bottom that still counts as "following" the chat */
+const AUTO_FOLLOW_THRESHOLD_PX = 60;
+
+/**
+ * Short, natural reply bodies keyed by reply type. The "@username " prefix is
+ * added at generation time. `followup` powers simple New Viewer questions.
+ */
+const REPLY_BODIES = {
+  agreement: [
+    'yeah that was clean.',
+    'facts.',
+    'agreed.',
+    'exactly this.',
+    'for real.',
+    'yep, same.',
+    '100%.',
+    'true.',
+    "couldn't agree more.",
+    'this right here.',
+  ],
+  disagreement: [
+    'nah I disagree.',
+    'not really though.',
+    'hard disagree.',
+    'eh, not sure about that.',
+    'nah, wrong call.',
+    'zone was the better play.',
+    'he should have pushed.',
+    'not buying it.',
+    'idk about that one.',
+    'respectfully, no.',
+  ],
+  joke: [
+    'lmao okay.',
+    'you would say that.',
+    'copium detected.',
+    'sure, bud.',
+    'name checks out.',
+    'least biased viewer.',
+    'certified moment.',
+    'the confidence is wild.',
+    'couldnt be me.',
+    'ok comedian.',
+  ],
+  hype: [
+    'YESSS.',
+    'LETS GO.',
+    'so hype.',
+    'W take.',
+    'based.',
+    'this guy gets it.',
+    'POG.',
+    'chat W.',
+    'preach.',
+    'huge.',
+  ],
+  troll: [
+    'skill issue.',
+    'okay npc.',
+    'ratio.',
+    'mid take.',
+    'grandma take.',
+    'delete this.',
+    'source: trust me.',
+    'lil bro spoke.',
+    'and? cope.',
+    'hard yikes.',
+  ],
+  supportive: [
+    "don't listen to them, you're good.",
+    'ignore the haters.',
+    'well said.',
+    'be nice, chat.',
+    'we support you.',
+    'good vibes only.',
+    "you're right, keep it up.",
+    'stay positive.',
+    'real one.',
+    'facts, respect.',
+  ],
+  followup: [
+    'wait, what does that mean?',
+    'is that good?',
+    'how do you do that?',
+    'can you explain?',
+    'new here, what happened?',
+    'why is that?',
+    'is that hard?',
+    'what rank is that?',
+    'wait how?',
+    'what game is this again?',
+  ],
+};
+
+/**
+ * Reply types each personality tends to use. Weighted by repetition in the
+ * array. Supportive defends, trolls roast, competitive corrects strategy,
+ * regulars agree/joke, new viewers ask simple follow-ups.
+ */
+const REPLY_TYPES_BY_PERSONALITY = {
+  newViewer: ['followup', 'followup', 'agreement'],
+  regularViewer: ['agreement', 'agreement', 'joke', 'hype'],
+  competitivePlayer: ['disagreement', 'disagreement', 'agreement'],
+  supportiveViewer: ['supportive', 'supportive', 'agreement', 'hype'],
+  troll: ['troll', 'troll', 'joke', 'disagreement'],
+};
+
+/** Fallback reply-type mix for any personality without a specific mapping */
+const DEFAULT_REPLY_TYPES = ['agreement', 'joke', 'hype', 'disagreement'];
+
 const DEFAULT_VIEWER_SETTINGS = {
   enabled: true,
   startingViewers: 2,
@@ -593,6 +717,10 @@ const state = {
   recentUsernames: [],      // Track recent usernames for variety
   maxRecentMessages: 12,    // Don't repeat a message within this window
   maxRecentUsernames: 8,
+  chatterInteractionsEnabled: true, // @username chatter-to-chatter replies
+  recentChatters: [],       // Recent posters available as reply targets
+  recentReplyTargets: [],   // Recently replied-to usernames (cool-down)
+  autoFollow: true,         // Auto-scroll to newest unless user scrolled up
 };
 
 /* ==========================================================================
@@ -608,8 +736,9 @@ const frequencySlider = document.getElementById('frequencySlider');
 const frequencyValue = document.getElementById('frequencyValue');
 const frequencyHeaderValue = document.getElementById('frequencyHeaderValue');
 const categoryList = document.getElementById('categoryList');
-const franchiseSelect = document.getElementById('franchiseSelect');
-const subGameSelect = document.getElementById('subGameSelect');
+const franchiseButtonGroup = document.getElementById('franchiseButtonGroup');
+const subGameButtonGroup = document.getElementById('subGameButtonGroup');
+const subGameEmptyHint = document.getElementById('subGameEmptyHint');
 const subGameGroup = document.getElementById('subGameGroup');
 const gameSelectionDisplay = document.getElementById('gameSelectionDisplay');
 const streamPhaseDisplay = document.getElementById('streamPhaseDisplay');
@@ -631,6 +760,8 @@ const viewerRandomFluctuation = document.getElementById('viewerRandomFluctuation
 const personalityList = document.getElementById('personalityList');
 const personalityWarning = document.getElementById('personalityWarning');
 const showPersonalityLabelsCheckbox = document.getElementById('showPersonalityLabels');
+const chatterInteractionsToggle = document.getElementById('chatterInteractions');
+const newMessagesBtn = document.getElementById('newMessagesBtn');
 const obsModeCheckbox = document.getElementById('obsMode');
 const obsExitBtn = document.getElementById('obsExitBtn');
 
@@ -643,17 +774,21 @@ function init() {
   applyProfileToForm();
   loadViewerSettings();
   applyViewerSettingsToForm();
+  loadChatterInteractionSetting();
+  applyChatterInteractionToForm();
   resetViewerCount();
   renderCategoryToggles();
   renderPersonalityToggles();
   initAccordion();
-  populateSubGameSelect();
+  renderFranchiseButtons();
+  renderSubGameButtons();
   updateGameSelectionDisplay();
   state.openingDurationMs = parseInt(openingDurationSelect.value, 10) * 1000;
   updateStreamPhaseDisplay();
   document.body.classList.toggle('hide-personality-labels', !showPersonalityLabelsCheckbox.checked);
   showEmptyState();
   bindEvents();
+  initChatScroll();
 
   if (shouldAutoEnableObsMode()) {
     setObsMode(true);
@@ -786,12 +921,11 @@ function bindEvents() {
 
   categoryList.addEventListener('change', onCategoryToggle);
 
+  chatterInteractionsToggle.addEventListener('change', onChatterInteractionsChange);
+
   personalityList.addEventListener('change', onPersonalityToggle);
 
   showPersonalityLabelsCheckbox.addEventListener('change', onShowPersonalityLabelsChange);
-
-  franchiseSelect.addEventListener('change', onFranchiseChange);
-  subGameSelect.addEventListener('change', onSubGameChange);
 
   openingDurationSelect.addEventListener('change', onOpeningDurationChange);
 
@@ -877,6 +1011,10 @@ function clearChat() {
   chatWindow.innerHTML = '';
   state.recentMessages = [];
   state.recentUsernames = [];
+  state.recentChatters = [];
+  state.recentReplyTargets = [];
+  state.autoFollow = true;
+  hideNewMessagesIndicator();
   resetStreamPhase();
   resetViewerCount();
   state.viewerSessionActive = false;
@@ -989,45 +1127,77 @@ function onShowPersonalityLabelsChange() {
   document.body.classList.toggle('hide-personality-labels', !state.showPersonalityLabels);
 }
 
-function onFranchiseChange() {
-  state.franchise = franchiseSelect.value;
-  populateSubGameSelect();
+function renderFranchiseButtons() {
+  franchiseButtonGroup.innerHTML = '';
+
+  Object.entries(GAME_FRANCHISES).forEach(([key, franchise]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button-group__btn';
+    button.textContent = franchise.label;
+    button.dataset.franchise = key;
+    button.setAttribute('aria-pressed', String(key === state.franchise));
+
+    if (key === state.franchise) {
+      button.classList.add('button-group__btn--active');
+    }
+
+    button.addEventListener('click', () => selectFranchise(key));
+    franchiseButtonGroup.appendChild(button);
+  });
+}
+
+function selectFranchise(franchiseKey) {
+  if (!GAME_FRANCHISES[franchiseKey] || state.franchise === franchiseKey) return;
+
+  state.franchise = franchiseKey;
+  renderFranchiseButtons();
+  renderSubGameButtons();
   updateGameSelectionDisplay();
 }
 
-function onSubGameChange() {
-  state.subGame = subGameSelect.value;
-  updateGameSelectionDisplay();
-}
-
-/** Rebuild sub-game options when the franchise changes */
-function populateSubGameSelect() {
+function renderSubGameButtons() {
   const franchise = GAME_FRANCHISES[state.franchise];
+  subGameButtonGroup.innerHTML = '';
 
-  if (!franchise.subGames) {
-    subGameGroup.classList.add('sub-game-group--hidden');
-    subGameSelect.disabled = true;
-    subGameSelect.innerHTML = '';
+  if (!franchise || !franchise.subGames) {
+    subGameButtonGroup.hidden = true;
+    subGameEmptyHint.hidden = false;
     state.subGame = null;
     return;
   }
 
-  subGameGroup.classList.remove('sub-game-group--hidden');
-  subGameSelect.disabled = false;
-  subGameSelect.innerHTML = '';
-
-  Object.entries(franchise.subGames).forEach(([key, subGame]) => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = subGame.label;
-    subGameSelect.appendChild(option);
-  });
+  subGameButtonGroup.hidden = false;
+  subGameEmptyHint.hidden = true;
 
   if (!franchise.subGames[state.subGame]) {
     state.subGame = Object.keys(franchise.subGames)[0];
   }
 
-  subGameSelect.value = state.subGame;
+  Object.entries(franchise.subGames).forEach(([key, subGame]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button-group__btn';
+    button.textContent = subGame.label;
+    button.dataset.subGame = key;
+    button.setAttribute('aria-pressed', String(key === state.subGame));
+
+    if (key === state.subGame) {
+      button.classList.add('button-group__btn--active');
+    }
+
+    button.addEventListener('click', () => selectSubGame(key));
+    subGameButtonGroup.appendChild(button);
+  });
+}
+
+function selectSubGame(subGameKey) {
+  const franchise = GAME_FRANCHISES[state.franchise];
+  if (!franchise?.subGames?.[subGameKey] || state.subGame === subGameKey) return;
+
+  state.subGame = subGameKey;
+  renderSubGameButtons();
+  updateGameSelectionDisplay();
 }
 
 /** Whether the General Gaming franchise is selected (no sub-game) */
@@ -1294,6 +1464,88 @@ function generateMessage() {
 }
 
 /* ==========================================================================
+   Chatter Interactions — viewers reply to each other with @username
+   ========================================================================== */
+
+/** Anti-repeat pick that shares the recentMessages window with normal messages */
+function pickAntiRepeat(pool) {
+  let available = pool.filter((msg) => !state.recentMessages.includes(msg));
+
+  if (available.length === 0) {
+    available = pool;
+  }
+
+  const message = pickRandom(available);
+
+  state.recentMessages.push(message);
+  if (state.recentMessages.length > state.maxRecentMessages) {
+    state.recentMessages.shift();
+  }
+
+  return message;
+}
+
+/** Recent posters we can reply to, preferring ones we haven't replied to lately */
+function getReplyTargets() {
+  const nonReplies = state.recentChatters.filter((chatter) => !chatter.isReply);
+  const blocked = new Set(state.recentReplyTargets);
+  const preferred = nonReplies.filter((chatter) => !blocked.has(chatter.username));
+
+  return preferred.length > 0 ? preferred : nonReplies;
+}
+
+/** Choose a weighted reply type for the replying viewer's personality */
+function pickReplyType(personalityKey) {
+  const types = REPLY_TYPES_BY_PERSONALITY[personalityKey] || DEFAULT_REPLY_TYPES;
+  return pickRandom(types);
+}
+
+/**
+ * Possibly build a chatter-to-chatter reply for this message.
+ * Returns { text, personalityKey } or null when no reply should be sent.
+ */
+function maybeGenerateReply() {
+  if (!state.chatterInteractionsEnabled) return null;
+
+  // Replies need an established conversation, so skip the opening greetings.
+  if (state.streamPhase !== STREAM_PHASE.NORMAL) return null;
+
+  const targets = getReplyTargets();
+  if (targets.length === 0) return null;
+
+  const replyChance = CHATTER_REPLY_RATE_MIN
+    + Math.random() * (CHATTER_REPLY_RATE_MAX - CHATTER_REPLY_RATE_MIN);
+  if (Math.random() > replyChance) return null;
+
+  const target = pickRandom(targets);
+  const personalityKey = pickRandomPersonality();
+  const replyType = pickReplyType(personalityKey);
+  const body = pickAntiRepeat(REPLY_BODIES[replyType] || REPLY_BODIES.agreement);
+
+  state.recentReplyTargets.push(target.username);
+  if (state.recentReplyTargets.length > MAX_RECENT_REPLY_TARGETS) {
+    state.recentReplyTargets.shift();
+  }
+
+  return {
+    text: `@${target.username} ${body}`,
+    personalityKey,
+  };
+}
+
+/** Remember a posted chatter so later messages can reply to them */
+function trackChatter(data) {
+  state.recentChatters.push({
+    username: data.username,
+    isReply: data.text.startsWith('@'),
+  });
+
+  if (state.recentChatters.length > MAX_RECENT_CHATTERS) {
+    state.recentChatters.shift();
+  }
+}
+
+/* ==========================================================================
    Streamer Profile
    ========================================================================== */
 
@@ -1511,6 +1763,43 @@ function saveViewerSettings() {
   }
 }
 
+/** Load the chatter interaction toggle from localStorage (defaults to on) */
+function loadChatterInteractionSetting() {
+  try {
+    const raw = localStorage.getItem(CHATTER_INTERACTION_STORAGE_KEY);
+    if (raw !== null) {
+      state.chatterInteractionsEnabled = raw === 'true';
+    }
+  } catch {
+    state.chatterInteractionsEnabled = true;
+  }
+}
+
+/** Persist the chatter interaction toggle */
+function saveChatterInteractionSetting() {
+  try {
+    localStorage.setItem(
+      CHATTER_INTERACTION_STORAGE_KEY,
+      String(state.chatterInteractionsEnabled)
+    );
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/** Reflect the saved setting in the toggle control */
+function applyChatterInteractionToForm() {
+  if (chatterInteractionsToggle) {
+    chatterInteractionsToggle.checked = state.chatterInteractionsEnabled;
+  }
+}
+
+/** Toggle handler for "Enable chatter interactions" */
+function onChatterInteractionsChange() {
+  state.chatterInteractionsEnabled = chatterInteractionsToggle.checked;
+  saveChatterInteractionSetting();
+}
+
 /** Apply saved viewer settings to form controls */
 function applyViewerSettingsToForm() {
   const settings = state.viewerSettings;
@@ -1615,8 +1904,11 @@ function tickViewerCount() {
   state.currentViewers = clampNumber(state.currentViewers + delta, minViewers, maxViewers);
   updateViewerCountDisplay();
 
-  if (state.intervalId) clearTimeout(state.intervalId);
-  scheduleNextMessage();
+  // NOTE: Do not reset the message timer here. The viewer-count ticker fires
+  // every few seconds; restarting the message timeout on each tick would
+  // perpetually starve it whenever the message interval is longer than the
+  // tick interval (e.g. 15s+ frequency). The new viewer count is picked up
+  // automatically by the next scheduleNextMessage() call after a message posts.
 }
 
 /** Schedule the next viewer count fluctuation */
@@ -1692,12 +1984,12 @@ function formatTimestamp(date) {
 
 function createMessageData() {
   const username = generateUsername();
-  const { text, personalityKey } = generateMessage();
+  const { text, personalityKey } = maybeGenerateReply() || generateMessage();
   const personality = VIEWER_PERSONALITIES[personalityKey];
   const color = generateUsernameColor();
   const timestamp = formatTimestamp(new Date());
 
-  return {
+  const data = {
     timestamp,
     username,
     color,
@@ -1705,6 +1997,21 @@ function createMessageData() {
     personalityKey,
     personalityLabel: personality ? personality.label : null,
   };
+
+  trackChatter(data);
+  return data;
+}
+
+/** Render message text, highlighting a leading @username mention (escaped) */
+function formatMessageText(text) {
+  const match = text.match(/^(@\S+)(\s+)([\s\S]*)$/);
+
+  if (match) {
+    return `<span class="chat-message__mention">${escapeHtml(match[1])}</span>`
+      + `${escapeHtml(match[2])}${escapeHtml(match[3])}`;
+  }
+
+  return escapeHtml(text);
 }
 
 function createMessageElement(data) {
@@ -1718,7 +2025,7 @@ function createMessageElement(data) {
     <span class="chat-message__timestamp">${data.timestamp}</span>
     <span class="chat-message__username" style="color: ${data.color}">${escapeHtml(data.username)}:</span>
     ${personalityHtml}
-    <span class="chat-message__text">${escapeHtml(data.text)}</span>
+    <span class="chat-message__text">${formatMessageText(data.text)}</span>
   `;
 
   return messageEl;
@@ -1729,7 +2036,24 @@ function postMessage() {
 
   const messageData = createMessageData();
   chatWindow.appendChild(createMessageElement(messageData));
-  scrollToBottom();
+  enforceMessageLimit();
+  handleNewMessageScroll();
+}
+
+/** Keep the DOM capped so the chat never grows without bound */
+function enforceMessageLimit() {
+  while (chatWindow.children.length > MAX_CHAT_MESSAGES) {
+    chatWindow.removeChild(chatWindow.firstElementChild);
+  }
+}
+
+/** Auto-scroll to the newest message, or show the indicator if scrolled up */
+function handleNewMessageScroll() {
+  if (state.autoFollow) {
+    scrollToBottom();
+  } else {
+    showNewMessagesIndicator();
+  }
 }
 
 /** Prevent XSS when rendering user-generated-style content */
@@ -1741,6 +2065,45 @@ function escapeHtml(text) {
 
 function scrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
+  state.autoFollow = true;
+  hideNewMessagesIndicator();
+}
+
+/** True when the user is at (or near) the newest message */
+function isNearBottom() {
+  const distance = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight;
+  return distance <= AUTO_FOLLOW_THRESHOLD_PX;
+}
+
+function showNewMessagesIndicator() {
+  if (newMessagesBtn) newMessagesBtn.hidden = false;
+}
+
+function hideNewMessagesIndicator() {
+  if (newMessagesBtn) newMessagesBtn.hidden = true;
+}
+
+/**
+ * Track whether the user is following the bottom of the chat. Scrolling up
+ * pauses auto-scroll; returning to the bottom resumes it and hides the badge.
+ */
+function initChatScroll() {
+  chatWindow.addEventListener('scroll', () => {
+    if (isNearBottom()) {
+      state.autoFollow = true;
+      hideNewMessagesIndicator();
+    } else {
+      state.autoFollow = false;
+    }
+  });
+
+  if (newMessagesBtn) {
+    newMessagesBtn.addEventListener('click', () => {
+      chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+      state.autoFollow = true;
+      hideNewMessagesIndicator();
+    });
+  }
 }
 
 function showEmptyState(message) {
