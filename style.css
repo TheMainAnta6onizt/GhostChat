@@ -1022,6 +1022,32 @@ body.obs-mode .obs-exit-btn {
   }
 }
 
+/* Narrow mobile: let chat header badges wrap instead of overlapping */
+@media (max-width: 430px) {
+  .chat-panel__header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .chat-panel__meta {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .chat-panel__header-right {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .chat-panel__game-mode {
+    max-width: 160px;
+  }
+}
+
 @media (max-width: 400px) {
   .header__title {
     font-size: 1.4rem;

@@ -1070,7 +1070,7 @@ function updateStreamPhaseFromTimer() {
 /** Update the phase badge in the chat header */
 function updateStreamPhaseDisplay() {
   const isOpening = state.streamPhase === STREAM_PHASE.OPENING;
-  streamPhaseDisplay.textContent = isOpening ? 'Opening Phase' : 'Normal Chat Phase';
+  streamPhaseDisplay.textContent = isOpening ? 'Opening' : 'Normal';
   streamPhaseDisplay.classList.toggle('chat-panel__phase--opening', isOpening);
   streamPhaseDisplay.classList.toggle('chat-panel__phase--normal', !isOpening);
 }
