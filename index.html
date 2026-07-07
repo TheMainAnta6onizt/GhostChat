@@ -21,10 +21,17 @@
     <!-- Header -->
     <header class="header">
       <div class="header__brand">
-        <span class="header__logo" aria-hidden="true">👻</span>
+        <img
+          class="header__logo"
+          src="assets/ghostchat-icon-transparent.png"
+          alt="GhostChat logo"
+          width="546"
+          height="364"
+          decoding="async"
+        >
         <h1 class="header__title">GhostChat</h1>
       </div>
-      <p class="header__subtitle">Practice streaming with simulated viewers</p>
+      <p class="header__subtitle"><span class="header__subtitle-lead">Practice chat.</span> <span class="header__subtitle-accent">Stream better.</span></p>
     </header>
 
     <main class="main">
@@ -55,19 +62,19 @@
         <h2 class="controls-panel__title">Controls</h2>
 
         <div class="accordion" id="controlsAccordion">
-          <!-- Main Controls -->
+          <!-- 1. Start -->
           <section class="accordion__section accordion__section--open">
             <button
               type="button"
               class="accordion__header"
-              id="accordionHeaderMain"
+              id="accordionHeaderStart"
               aria-expanded="true"
-              aria-controls="accordionBodyMain"
+              aria-controls="accordionBodyStart"
             >
-              <span class="accordion__title">Main Controls</span>
+              <span class="accordion__title">Start</span>
               <span class="accordion__chevron" aria-hidden="true"></span>
             </button>
-            <div class="accordion__body" id="accordionBodyMain">
+            <div class="accordion__body" id="accordionBodyStart">
               <div class="accordion__body-inner">
                 <div class="control-group control-group--flush">
                   <div class="button-row">
@@ -80,21 +87,121 @@
             </div>
           </section>
 
-          <!-- Stream Phase -->
+          <!-- 2. Quick Setup -->
+          <section class="accordion__section accordion__section--open">
+            <button
+              type="button"
+              class="accordion__header"
+              id="accordionHeaderQuickSetup"
+              aria-expanded="true"
+              aria-controls="accordionBodyQuickSetup"
+            >
+              <span class="accordion__title">Quick Setup</span>
+              <span class="accordion__chevron" aria-hidden="true"></span>
+            </button>
+            <div class="accordion__body" id="accordionBodyQuickSetup">
+              <div class="accordion__body-inner">
+                <div class="control-group">
+                  <p class="control-group__heading">Quick Presets</p>
+                  <p class="control-hint">One-tap presets are coming in v1.2.0.</p>
+                  <div class="button-group" id="quickPresetGroup" role="group" aria-label="Quick Presets">
+                    <button type="button" class="button-group__btn" data-preset="chill" disabled>Chill</button>
+                    <button type="button" class="button-group__btn" data-preset="balanced" disabled>Balanced</button>
+                    <button type="button" class="button-group__btn" data-preset="hype" disabled>Hype</button>
+                  </div>
+                </div>
+
+                <div class="control-group control-group--flush">
+                  <p class="control-group__heading">Game Selection</p>
+                  <span class="control-label">Game Franchise</span>
+                  <div class="button-group" id="franchiseButtonGroup" role="group" aria-label="Game Franchise">
+                    <!-- Franchise buttons injected by script.js -->
+                  </div>
+
+                  <div class="sub-game-group" id="subGameGroup">
+                    <span class="control-label control-label--spaced">Sub-Game</span>
+                    <div class="button-group" id="subGameButtonGroup" role="group" aria-label="Sub-Game">
+                      <!-- Sub-game buttons injected by script.js -->
+                    </div>
+                    <p class="sub-game-group__empty" id="subGameEmptyHint" hidden>No sub-game needed.</p>
+                  </div>
+
+                  <p class="control-hint">Messages prioritize the selected sub-game, with occasional general gaming questions mixed in.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Chat Feel -->
           <section class="accordion__section">
             <button
               type="button"
               class="accordion__header"
-              id="accordionHeaderStreamPhase"
+              id="accordionHeaderChatFeel"
               aria-expanded="false"
-              aria-controls="accordionBodyStreamPhase"
+              aria-controls="accordionBodyChatFeel"
             >
-              <span class="accordion__title">Stream Phase</span>
+              <span class="accordion__title">Chat Feel</span>
+              <span class="accordion__meta" id="frequencyHeaderValue">15s</span>
               <span class="accordion__chevron" aria-hidden="true"></span>
             </button>
-            <div class="accordion__body" id="accordionBodyStreamPhase">
+            <div class="accordion__body" id="accordionBodyChatFeel">
               <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
+                <div class="control-group">
+                  <p class="control-group__heading">Message Frequency</p>
+                  <label class="control-label" for="frequencySlider">
+                    Interval
+                    <span class="control-value" id="frequencyValue">15s</span>
+                  </label>
+                  <input
+                    type="range"
+                    id="frequencySlider"
+                    class="slider"
+                    min="5"
+                    max="90"
+                    value="15"
+                    step="1"
+                  >
+                  <div class="slider-labels">
+                    <span>5s</span>
+                    <span>90s</span>
+                  </div>
+                </div>
+
+                <div class="control-group">
+                  <p class="control-group__heading">Viewer Count <span class="accordion__meta" id="viewerCountHeaderValue">2</span></p>
+                  <label class="toggle-row">
+                    <input type="checkbox" id="viewerCountEnabled" class="toggle-row__input" checked>
+                    <span class="toggle-row__label">Enable Viewer Count Simulator</span>
+                  </label>
+
+                  <label class="control-label control-label--spaced" for="viewerStartingInput">Starting Viewers</label>
+                  <input type="number" id="viewerStartingInput" class="text-input text-input--number" min="0" value="2">
+
+                  <label class="control-label control-label--spaced" for="viewerMinInput">Minimum Viewers</label>
+                  <input type="number" id="viewerMinInput" class="text-input text-input--number" min="0" value="0">
+
+                  <label class="control-label control-label--spaced" for="viewerMaxInput">Maximum Viewers</label>
+                  <input type="number" id="viewerMaxInput" class="text-input text-input--number" min="0" value="25">
+
+                  <label class="control-label control-label--spaced" for="viewerGrowthSpeed">Growth Speed</label>
+                  <select id="viewerGrowthSpeed" class="select">
+                    <option value="slow">Slow</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="fast">Fast</option>
+                  </select>
+
+                  <label class="toggle-row toggle-row--compact">
+                    <input type="checkbox" id="viewerRandomFluctuation" class="toggle-row__input" checked>
+                    <span class="toggle-row__label">Random Fluctuation</span>
+                    <span class="toggle-row__hint">Allows the count to rise and fall naturally over time.</span>
+                  </label>
+
+                  <p class="control-hint">Higher viewer counts increase chat activity. Settings are saved automatically.</p>
+                </div>
+
+                <div class="control-group">
+                  <p class="control-group__heading">Stream Phase</p>
                   <label class="control-label" for="openingDurationSelect">Opening Phase Duration</label>
                   <select id="openingDurationSelect" class="select">
                     <option value="30">30 seconds</option>
@@ -104,11 +211,64 @@
                   </select>
                   <p class="control-hint">Greeting messages play first, then chat transitions to normal game talk.</p>
                 </div>
+
+                <div class="control-group control-group--flush">
+                  <p class="control-group__heading">Chatter Interactions</p>
+                  <label class="toggle-row toggle-row--compact">
+                    <input type="checkbox" id="chatterInteractions" class="toggle-row__input" checked>
+                    <span class="toggle-row__label">Enable chatter interactions</span>
+                    <span class="toggle-row__hint">Viewers occasionally reply to each other with @username.</span>
+                  </label>
+                </div>
               </div>
             </div>
           </section>
 
-          <!-- Streamer Profile -->
+          <!-- 4. Chat Content -->
+          <section class="accordion__section">
+            <button
+              type="button"
+              class="accordion__header"
+              id="accordionHeaderChatContent"
+              aria-expanded="false"
+              aria-controls="accordionBodyChatContent"
+            >
+              <span class="accordion__title">Chat Content</span>
+              <span class="accordion__chevron" aria-hidden="true"></span>
+            </button>
+            <div class="accordion__body" id="accordionBodyChatContent">
+              <div class="accordion__body-inner">
+                <div class="control-group">
+                  <p class="control-group__heading">Viewer Personalities</p>
+                  <p class="control-hint">Each message is spoken in the tone of an enabled personality.</p>
+                  <div class="category-list" id="personalityList">
+                    <!-- Personality checkboxes injected by script.js -->
+                  </div>
+                  <p class="control-warning" id="personalityWarning" hidden role="alert">
+                    At least one viewer personality must stay enabled.
+                  </p>
+                </div>
+
+                <div class="control-group">
+                  <p class="control-group__heading">Message Categories</p>
+                  <p class="control-hint">Optional mix-ins alongside your selected game mode.</p>
+                  <div class="category-list" id="categoryList">
+                    <!-- Category checkboxes injected by script.js -->
+                  </div>
+                </div>
+
+                <div class="control-group control-group--flush">
+                  <label class="toggle-row toggle-row--compact">
+                    <input type="checkbox" id="showPersonalityLabels" class="toggle-row__input" checked>
+                    <span class="toggle-row__label">Show personality labels</span>
+                    <span class="toggle-row__hint">Hide labels for a cleaner OBS overlay.</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Streamer Profile -->
           <section class="accordion__section">
             <button
               type="button"
@@ -162,189 +322,7 @@
             </div>
           </section>
 
-          <!-- Game Selection -->
-          <section class="accordion__section accordion__section--open">
-            <button
-              type="button"
-              class="accordion__header"
-              id="accordionHeaderGameMode"
-              aria-expanded="true"
-              aria-controls="accordionBodyGameMode"
-            >
-              <span class="accordion__title">Game Selection</span>
-              <span class="accordion__chevron" aria-hidden="true"></span>
-            </button>
-            <div class="accordion__body" id="accordionBodyGameMode">
-              <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
-                  <span class="control-label">Game Franchise</span>
-                  <div class="button-group" id="franchiseButtonGroup" role="group" aria-label="Game Franchise">
-                    <!-- Franchise buttons injected by script.js -->
-                  </div>
-
-                  <div class="sub-game-group" id="subGameGroup">
-                    <span class="control-label control-label--spaced">Sub-Game</span>
-                    <div class="button-group" id="subGameButtonGroup" role="group" aria-label="Sub-Game">
-                      <!-- Sub-game buttons injected by script.js -->
-                    </div>
-                    <p class="sub-game-group__empty" id="subGameEmptyHint" hidden>No sub-game needed.</p>
-                  </div>
-
-                  <p class="control-hint">Messages prioritize the selected sub-game, with occasional general gaming questions mixed in.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Viewer Personalities -->
-          <section class="accordion__section accordion__section--open">
-            <button
-              type="button"
-              class="accordion__header"
-              id="accordionHeaderPersonalities"
-              aria-expanded="true"
-              aria-controls="accordionBodyPersonalities"
-            >
-              <span class="accordion__title">Viewer Personalities</span>
-              <span class="accordion__chevron" aria-hidden="true"></span>
-            </button>
-            <div class="accordion__body" id="accordionBodyPersonalities">
-              <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
-                  <p class="control-hint">Each message is spoken in the tone of an enabled personality.</p>
-                  <div class="category-list" id="personalityList">
-                    <!-- Personality checkboxes injected by script.js -->
-                  </div>
-                  <p class="control-warning" id="personalityWarning" hidden role="alert">
-                    At least one viewer personality must stay enabled.
-                  </p>
-                  <label class="toggle-row toggle-row--compact">
-                    <input type="checkbox" id="showPersonalityLabels" class="toggle-row__input" checked>
-                    <span class="toggle-row__label">Show personality labels</span>
-                    <span class="toggle-row__hint">Hide labels for a cleaner OBS overlay.</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Message Frequency -->
-          <section class="accordion__section">
-            <button
-              type="button"
-              class="accordion__header"
-              id="accordionHeaderFrequency"
-              aria-expanded="false"
-              aria-controls="accordionBodyFrequency"
-            >
-              <span class="accordion__title">Message Frequency</span>
-              <span class="accordion__meta" id="frequencyHeaderValue">15s</span>
-              <span class="accordion__chevron" aria-hidden="true"></span>
-            </button>
-            <div class="accordion__body" id="accordionBodyFrequency">
-              <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
-                  <label class="control-label" for="frequencySlider">
-                    Interval
-                    <span class="control-value" id="frequencyValue">15s</span>
-                  </label>
-                  <input
-                    type="range"
-                    id="frequencySlider"
-                    class="slider"
-                    min="5"
-                    max="90"
-                    value="15"
-                    step="1"
-                  >
-                  <div class="slider-labels">
-                    <span>5s</span>
-                    <span>90s</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Viewer Count -->
-          <section class="accordion__section">
-            <button
-              type="button"
-              class="accordion__header"
-              id="accordionHeaderViewerCount"
-              aria-expanded="false"
-              aria-controls="accordionBodyViewerCount"
-            >
-              <span class="accordion__title">Viewer Count</span>
-              <span class="accordion__meta" id="viewerCountHeaderValue">2</span>
-              <span class="accordion__chevron" aria-hidden="true"></span>
-            </button>
-            <div class="accordion__body" id="accordionBodyViewerCount">
-              <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
-                  <label class="toggle-row">
-                    <input type="checkbox" id="viewerCountEnabled" class="toggle-row__input" checked>
-                    <span class="toggle-row__label">Enable Viewer Count Simulator</span>
-                  </label>
-
-                  <label class="control-label control-label--spaced" for="viewerStartingInput">Starting Viewers</label>
-                  <input type="number" id="viewerStartingInput" class="text-input text-input--number" min="0" value="2">
-
-                  <label class="control-label control-label--spaced" for="viewerMinInput">Minimum Viewers</label>
-                  <input type="number" id="viewerMinInput" class="text-input text-input--number" min="0" value="0">
-
-                  <label class="control-label control-label--spaced" for="viewerMaxInput">Maximum Viewers</label>
-                  <input type="number" id="viewerMaxInput" class="text-input text-input--number" min="0" value="25">
-
-                  <label class="control-label control-label--spaced" for="viewerGrowthSpeed">Growth Speed</label>
-                  <select id="viewerGrowthSpeed" class="select">
-                    <option value="slow">Slow</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="fast">Fast</option>
-                  </select>
-
-                  <label class="toggle-row toggle-row--compact">
-                    <input type="checkbox" id="viewerRandomFluctuation" class="toggle-row__input" checked>
-                    <span class="toggle-row__label">Random Fluctuation</span>
-                    <span class="toggle-row__hint">Allows the count to rise and fall naturally over time.</span>
-                  </label>
-
-                  <p class="control-hint">Higher viewer counts increase chat activity. Settings are saved automatically.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Message Categories -->
-          <section class="accordion__section">
-            <button
-              type="button"
-              class="accordion__header"
-              id="accordionHeaderCategories"
-              aria-expanded="false"
-              aria-controls="accordionBodyCategories"
-            >
-              <span class="accordion__title">Message Categories</span>
-              <span class="accordion__chevron" aria-hidden="true"></span>
-            </button>
-            <div class="accordion__body" id="accordionBodyCategories">
-              <div class="accordion__body-inner">
-                <div class="control-group control-group--flush">
-                  <p class="control-hint">Optional mix-ins alongside your selected game mode.</p>
-                  <div class="category-list" id="categoryList">
-                    <!-- Category checkboxes injected by script.js -->
-                  </div>
-                  <label class="toggle-row toggle-row--compact">
-                    <input type="checkbox" id="chatterInteractions" class="toggle-row__input" checked>
-                    <span class="toggle-row__label">Enable chatter interactions</span>
-                    <span class="toggle-row__hint">Viewers occasionally reply to each other with @username.</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- OBS Mode -->
+          <!-- 6. OBS / Overlay -->
           <section class="accordion__section">
             <button
               type="button"
@@ -353,7 +331,7 @@
               aria-expanded="false"
               aria-controls="accordionBodyObs"
             >
-              <span class="accordion__title">OBS Mode</span>
+              <span class="accordion__title">OBS / Overlay</span>
               <span class="accordion__chevron" aria-hidden="true"></span>
             </button>
             <div class="accordion__body" id="accordionBodyObs">

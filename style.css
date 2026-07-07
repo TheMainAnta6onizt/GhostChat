@@ -1,28 +1,37 @@
 /* ==========================================================================
-   GhostChat — Twitch-inspired dark theme
+   GhostChat — brand theme (dark navy, purple → cyan accents)
    ========================================================================== */
 
 /* --- CSS Custom Properties --- */
 :root {
-  --bg-primary: #0e0e10;
-  --bg-secondary: #18181b;
-  --bg-tertiary: #1f1f23;
-  --bg-hover: #26262c;
-  --border-color: #2d2d35;
-  --text-primary: #efeff1;
-  --text-secondary: #adadb8;
-  --text-muted: #71717a;
-  --accent-purple: #9147ff;
-  --accent-purple-hover: #772ce8;
+  /* Surfaces: dark navy/black from the brand kit, with softly lifted cards */
+  --bg-primary: #0e0b1a;
+  --bg-secondary: #171327;
+  --bg-tertiary: #1e1833;
+  --bg-hover: #272040;
+  --border-color: #2a2342;
+  --border-soft: rgba(179, 136, 255, 0.14);
+  --text-primary: #f2f0f7;
+  --text-secondary: #b8b4c8;
+  --text-muted: #807a95;
+  /* Purple → cyan accent system */
+  --accent-purple: #7c4dff;
+  --accent-purple-hover: #915cff;
+  --accent-purple-light: #b388ff;
+  --accent-cyan: #00e5ff;
   --accent-green: #00c853;
-  --accent-red: #eb0400;
-  --chat-font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --mono-font: "Consolas", "Courier New", monospace;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --transition: 150ms ease;
+  --accent-red: #ff4d6d;
+  --heading-font: "Sora", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --chat-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono-font: "JetBrains Mono", "Consolas", "Courier New", monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 8px 30px rgba(6, 4, 15, 0.55);
+  /* Soft, restrained glows */
+  --glow-purple: 0 0 0 1px rgba(124, 77, 255, 0.45), 0 6px 18px rgba(124, 77, 255, 0.28);
+  --glow-cyan: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 6px 16px rgba(0, 229, 255, 0.18);
+  --transition: 160ms ease;
 }
 
 /* --- Reset & Base --- */
@@ -51,6 +60,18 @@ body {
 body:not(.obs-mode) {
   height: 100vh;
   overflow: hidden;
+}
+
+/* Subtle atmospheric brand glow behind the app (never shown in OBS Mode) */
+body:not(.obs-mode)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1000px 560px at 50% -8%, rgba(124, 77, 255, 0.16), transparent 62%),
+    radial-gradient(760px 460px at 100% 8%, rgba(0, 229, 255, 0.07), transparent 60%);
 }
 
 body:not(.obs-mode) .app {
@@ -102,19 +123,38 @@ body:not(.obs-mode) .controls-panel {
 }
 
 .header__logo {
-  font-size: 1.75rem;
+  height: 2.6rem;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(124, 77, 255, 0.45));
 }
 
 .header__title {
+  font-family: var(--heading-font);
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  background: linear-gradient(95deg, var(--accent-purple-light) 0%, var(--accent-purple) 45%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-purple-light);
 }
 
 .header__subtitle {
-  color: var(--text-secondary);
   font-size: 0.9rem;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
+  letter-spacing: 0.01em;
+}
+
+.header__subtitle-lead {
+  color: var(--text-secondary);
+}
+
+.header__subtitle-accent {
+  color: var(--accent-purple-light);
+  font-weight: 600;
 }
 
 .main {
@@ -130,7 +170,7 @@ body:not(.obs-mode) .controls-panel {
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -159,8 +199,9 @@ body:not(.obs-mode) .controls-panel {
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(72, 219, 251, 0.12);
-  color: #48dbfb;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  color: var(--accent-cyan);
   white-space: nowrap;
 }
 
@@ -191,8 +232,9 @@ body:not(.obs-mode) .controls-panel {
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(145, 71, 255, 0.15);
-  color: var(--accent-purple);
+  background: rgba(124, 77, 255, 0.18);
+  border: 1px solid rgba(124, 77, 255, 0.3);
+  color: var(--accent-purple-light);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -264,19 +306,29 @@ body:not(.obs-mode) .controls-panel {
 
 .button-group__btn:hover:not(.button-group__btn--active) {
   background: var(--bg-hover);
-  border-color: var(--accent-purple);
+  border-color: rgba(179, 136, 255, 0.45);
 }
 
 .button-group__btn:focus-visible {
-  outline: 2px solid var(--accent-purple);
+  outline: 2px solid var(--accent-cyan);
   outline-offset: 2px;
 }
 
 .button-group__btn--active {
-  background: rgba(145, 71, 255, 0.22);
+  background: linear-gradient(135deg, rgba(124, 77, 255, 0.32), rgba(0, 229, 255, 0.16));
   border-color: var(--accent-purple);
   color: #fff;
-  box-shadow: 0 0 0 1px rgba(145, 71, 255, 0.4);
+  box-shadow: var(--glow-purple);
+}
+
+.button-group__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.button-group__btn:disabled:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
 }
 
 .control-label--spaced {
@@ -352,12 +404,13 @@ body:not(.obs-mode) .controls-panel {
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  transition: background var(--transition), opacity var(--transition);
+  box-shadow: 0 4px 14px rgba(6, 4, 15, 0.5), 0 0 12px rgba(124, 77, 255, 0.35);
+  transition: background var(--transition), opacity var(--transition), box-shadow var(--transition);
 }
 
 .new-messages-btn:hover {
   background: var(--accent-purple-hover);
+  box-shadow: var(--glow-purple);
 }
 
 .new-messages-btn[hidden] {
@@ -372,14 +425,37 @@ body:not(.obs-mode) .controls-panel {
 /* Empty state */
 .chat-window__empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.9rem;
   height: 100%;
   min-height: 200px;
   color: var(--text-muted);
   font-size: 0.9rem;
   padding: 2rem;
   text-align: center;
+}
+
+.chat-window__empty-icon {
+  width: clamp(64px, 22%, 112px);
+  height: auto;
+  opacity: 0.14;
+  filter: drop-shadow(0 0 18px rgba(124, 77, 255, 0.35))
+    drop-shadow(0 0 26px rgba(0, 229, 255, 0.18));
+  user-select: none;
+  pointer-events: none;
+}
+
+.chat-window__empty-text {
+  max-width: 22rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Keep the overlay clean over gameplay if chat starts empty */
+body.obs-mode .chat-window__empty {
+  display: none;
 }
 
 /* Individual chat message */
@@ -423,14 +499,14 @@ body.hide-personality-labels .chat-message__personality {
 }
 
 .chat-message__mention {
-  color: var(--accent-purple);
+  color: var(--accent-purple-light);
   font-weight: 600;
 }
 
 /* --- Controls Panel --- */
 .controls-panel {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 1rem;
   box-shadow: var(--shadow);
@@ -438,8 +514,10 @@ body.hide-personality-labels .chat-message__personality {
 }
 
 .controls-panel__title {
+  font-family: var(--heading-font);
   font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   margin-bottom: 0.75rem;
   padding-bottom: 0.65rem;
   border-bottom: 1px solid var(--border-color);
@@ -453,10 +531,16 @@ body.hide-personality-labels .chat-message__personality {
 }
 
 .accordion__section {
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   background: var(--bg-tertiary);
   overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.accordion__section--open {
+  border-color: rgba(124, 77, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(124, 77, 255, 0.08);
 }
 
 .accordion__header {
@@ -496,7 +580,7 @@ body.hide-personality-labels .chat-message__personality {
   font-size: 0.72rem;
   font-weight: 700;
   font-family: var(--mono-font);
-  color: var(--accent-purple);
+  color: var(--accent-purple-light);
   flex-shrink: 0;
 }
 
@@ -684,14 +768,14 @@ body.hide-personality-labels .chat-message__personality {
 .btn {
   flex: 1;
   min-width: 90px;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition: background var(--transition), opacity var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 
 .btn:disabled {
@@ -702,10 +786,16 @@ body.hide-personality-labels .chat-message__personality {
 .btn--primary {
   background: var(--accent-purple);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(124, 77, 255, 0.28);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: var(--accent-purple-hover);
+  box-shadow: var(--glow-purple);
+}
+
+.btn--primary:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn--secondary {
@@ -716,16 +806,18 @@ body.hide-personality-labels .chat-message__personality {
 
 .btn--secondary:hover:not(:disabled) {
   background: var(--bg-hover);
+  border-color: rgba(179, 136, 255, 0.35);
 }
 
 .btn--danger {
   background: transparent;
   color: var(--accent-red);
-  border: 1px solid var(--accent-red);
+  border: 1px solid rgba(255, 77, 109, 0.55);
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: rgba(235, 4, 0, 0.12);
+  background: rgba(255, 77, 109, 0.12);
+  border-color: var(--accent-red);
 }
 
 /* Frequency slider */
@@ -748,6 +840,7 @@ body.hide-personality-labels .chat-message__personality {
   background: var(--accent-purple);
   cursor: pointer;
   border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 8px rgba(124, 77, 255, 0.5);
   transition: transform var(--transition);
 }
 
@@ -913,8 +1006,8 @@ body.obs-mode .chat-panel__header {
   justify-content: space-between;
   gap: 0.5rem;
   flex-wrap: wrap;
-  background: rgba(14, 14, 16, 0.45);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 11, 26, 0.45);
+  border-bottom: 1px solid rgba(179, 136, 255, 0.14);
   padding: 0.5rem 0.75rem;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -936,6 +1029,11 @@ body.obs-mode .chat-window {
   background: transparent;
 }
 
+/* Keep chat legible over bright gameplay without an opaque panel */
+body.obs-mode .chat-message {
+  text-shadow: 0 1px 3px rgba(6, 4, 15, 0.85);
+}
+
 /* Subtle exit control — visible only while OBS Mode is active */
 .obs-exit-btn {
   display: none;
@@ -947,9 +1045,9 @@ body.obs-mode .chat-window {
   font-family: var(--chat-font);
   font-size: 0.65rem;
   font-weight: 500;
-  color: rgba(239, 239, 241, 0.55);
-  background: rgba(14, 14, 16, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(242, 240, 247, 0.6);
+  background: rgba(14, 11, 26, 0.35);
+  border: 1px solid rgba(179, 136, 255, 0.16);
   border-radius: var(--radius-sm);
   cursor: pointer;
   opacity: 0.4;
@@ -961,8 +1059,8 @@ body.obs-mode .chat-window {
 .obs-exit-btn:hover,
 .obs-exit-btn:focus-visible {
   opacity: 0.85;
-  color: rgba(239, 239, 241, 0.9);
-  background: rgba(14, 14, 16, 0.6);
+  color: rgba(242, 240, 247, 0.95);
+  background: rgba(14, 11, 26, 0.6);
   outline: none;
 }
 
@@ -1051,6 +1149,10 @@ body.obs-mode .obs-exit-btn {
 @media (max-width: 400px) {
   .header__title {
     font-size: 1.4rem;
+  }
+
+  .header__logo {
+    height: 2rem;
   }
 
   .chat-message {

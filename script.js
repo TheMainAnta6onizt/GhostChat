@@ -2111,7 +2111,20 @@ function showEmptyState(message) {
     const empty = document.createElement('div');
     empty.className = 'chat-window__empty';
     empty.id = 'emptyState';
-    empty.textContent = message || 'Press "Start Chat" to simulate viewers joining your stream.';
+
+    const icon = document.createElement('img');
+    icon.className = 'chat-window__empty-icon';
+    icon.src = 'assets/ghostchat-icon-transparent.png';
+    icon.alt = '';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.setAttribute('draggable', 'false');
+
+    const text = document.createElement('p');
+    text.className = 'chat-window__empty-text';
+    text.textContent = message || 'Press Start Chat to warm up the room.';
+
+    empty.appendChild(icon);
+    empty.appendChild(text);
     chatWindow.appendChild(empty);
   }
 }
