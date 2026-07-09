@@ -1,5 +1,5 @@
 /**
- * GhostChat — Twitch-style fake chat simulator
+ * GhostGab — Twitch-style practice chat overlay
  * Helps streamers practice talking while streaming with few or no viewers.
  */
 
@@ -193,7 +193,7 @@ const GAME_FRANCHISES = {
   },
 };
 
-/* Viewer personalities — tone and style of fake chat messages */
+/* Viewer personalities — tone and style of practice chat messages */
 const VIEWER_PERSONALITIES = {
   newViewer: {
     label: 'New Viewer',
@@ -2114,7 +2114,7 @@ function showEmptyState(message) {
 
     const icon = document.createElement('img');
     icon.className = 'chat-window__empty-icon';
-    icon.src = 'assets/ghostchat-icon-transparent.png';
+    icon.src = 'assets/ghostgab-icon-transparent.png';
     icon.alt = '';
     icon.setAttribute('aria-hidden', 'true');
     icon.setAttribute('draggable', 'false');
